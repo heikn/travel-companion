@@ -1,0 +1,8 @@
+{
+  "private": true,
+  "name": "travel-companion",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ]
+}

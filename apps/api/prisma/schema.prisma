@@ -1,0 +1,76 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum BudgetCategory {
+  lodging
+  food
+  transport
+  activities
+  other
+}
+
+model Trip {
+  id        String   @id @default(uuid())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  stops Stop[]
+}
+
+model Stop {
+  id        String   @id @default(uuid())
+  tripId    String
+  cityName  String
+  order     Int
+  startDate DateTime?
+  endDate   DateTime?
+  notes     String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  trip Trip @relation(fields: [tripId], references: [id], onDelete: Cascade)
+
+  budgetPlans BudgetPlan[]
+  expenses    Expense[]
+
+  @@index([tripId])
+  @@unique([tripId, order])
+}
+
+model BudgetPlan {
+  id        String         @id @default(uuid())
+  stopId    String
+  category  BudgetCategory
+  amount    Int            // käytä “cents” jos haluat
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  stop Stop @relation(fields: [stopId], references: [id], onDelete: Cascade)
+
+  @@unique([stopId, category])
+  @@index([stopId])
+}
+
+model Expense {
+  id        String         @id @default(uuid())
+  stopId    String
+  category  BudgetCategory
+  amount    Int            // cents
+  occurredAt DateTime?
+  note      String?
+
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  stop Stop @relation(fields: [stopId], references: [id], onDelete: Cascade)
+
+  @@index([stopId])
+  @@index([stopId, category])
+}
