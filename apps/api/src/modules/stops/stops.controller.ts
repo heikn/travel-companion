@@ -17,6 +17,11 @@ export class StopsController {
     return this.stopsService.create(tripId, dto);
   }
 
+  @Get("stops/:stopId")
+  getStop(@Param("stopId") stopId: string) {
+    return this.stopsService.findOne(stopId);
+  }
+
   @Patch("stops/:stopId")
   updateStop(@Param("stopId") stopId: string, @Body() dto: UpdateStopDto) {
     return this.stopsService.update(stopId, dto);

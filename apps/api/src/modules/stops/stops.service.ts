@@ -33,6 +33,27 @@ export class StopsService {
     }).then(rows => rows.map(this.mapStop));
   }
 
+  async findOne(stopId: string): Promise<Stop> {
+    const row = await this.prisma.stop.findUnique({
+      where: { id: stopId },
+      select: {
+        id: true,
+        tripId: true,
+        order: true,
+        cityName: true,
+        startDate: true,
+        endDate: true,
+        notes: true,
+      },
+    });
+
+    if (!row) {
+      throw new NotFoundException(`Stop with id ${stopId} not found`);
+    }
+
+    return this.mapStop(row);
+  }
+
   async create(tripId: string, input: Omit<Stop, "id" | "tripId">): Promise<Stop> {
     // Varmistetaan että trip on olemassa (muuten FK error)
     const trip = await this.prisma.trip.findUnique({ where: { id: tripId }, select: { id: true } });

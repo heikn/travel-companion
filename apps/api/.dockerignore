@@ -1,0 +1,8 @@
+# Docker ignore for API
+node_modules
+dist
+.env
+.env.*
+*.log
+coverage
+.nest-cli-debug.json

@@ -11,6 +11,65 @@ services:
       - "5432:5432"
     volumes:
       - tc_pgdata:/var/lib/postgresql/data
+    networks:
+      - tc-network
+
+  api:
+    build:
+      context: ..
+      dockerfile: apps/api/Dockerfile
+    container_name: tc-api
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://tc:tc@db:5432/travel_companion
+      PORT: 3000
+      CORS_ORIGIN: http://localhost:5173
+      NODE_ENV: development
+    ports:
+      - "3000:3000"
+    volumes:
+      # Mount source code for hot reload
+      - ../apps/api/src:/app/apps/api/src:ro
+      - ../apps/api/prisma:/app/apps/api/prisma:ro
+      - ../packages/shared/src:/app/packages/shared/src:ro
+      # Exclude node_modules
+      - /app/node_modules
+      - /app/apps/api/node_modules
+    depends_on:
+      - db
+    networks:
+      - tc-network
+    command: sh -c "yarn prisma migrate deploy && yarn start:dev"
+
+  web:
+    build:
+      context: ..
+      dockerfile: apps/web/Dockerfile
+    container_name: tc-web
+    restart: unless-stopped
+    environment:
+      VITE_API_BASE_URL: http://localhost:3000
+    ports:
+      - "5173:5173"
+    volumes:
+      # Mount source code for hot reload
+      - ../apps/web/src:/app/apps/web/src:ro
+      - ../apps/web/index.html:/app/apps/web/index.html:ro
+      - ../apps/web/vite.config.ts:/app/apps/web/vite.config.ts:ro
+      - ../apps/web/tailwind.config.ts:/app/apps/web/tailwind.config.ts:ro
+      - ../apps/web/postcss.config.cjs:/app/apps/web/postcss.config.cjs:ro
+      - ../packages/shared/src:/app/packages/shared/src:ro
+      # Exclude node_modules
+      - /app/node_modules
+      - /app/apps/web/node_modules
+    depends_on:
+      - api
+    networks:
+      - tc-network
 
 volumes:
   tc_pgdata:
+
+networks:
+  tc-network:
+    driver: bridge
